@@ -1,0 +1,135 @@
+<div class="task-form-background"></div>
+<div class="task-form-container">
+    <h2>{{ id ? 'Edit Task' : 'Create New Task' }}</h2>
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" novalidate>
+        
+        <!-- Title -->
+        <div class="form-group">
+            <label for="title">Task Title</label>
+            <input 
+                id="title"
+                type="text" 
+                formControlName="title" 
+                class="form-control"
+                placeholder="Enter task title..."
+                [class.is-invalid]="taskForm.get('title')?.invalid && taskForm.get('title')?.touched"
+            />
+            <div class="invalid-feedback" 
+                 *ngIf="taskForm.get('title')?.invalid && taskForm.get('title')?.touched">
+                <div *ngIf="taskForm.get('title')?.errors?.['required']">Title is required.</div>
+                <div *ngIf="taskForm.get('title')?.errors?.['minlength']">Title must be at least 3 characters long.</div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea 
+                id="description"
+                formControlName="description" 
+                class="form-control textarea-field"
+                placeholder="Enter task description..."
+                rows="4"
+                [class.is-invalid]="taskForm.get('description')?.invalid && taskForm.get('description')?.touched"
+            ></textarea>
+            <div class="invalid-feedback" 
+                 *ngIf="taskForm.get('description')?.invalid && taskForm.get('description')?.touched">
+                <div *ngIf="taskForm.get('description')?.errors?.['required']">Description is required.</div>
+            </div>
+        </div>
+
+        <!-- Form Row for Assignee and Priority -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="assignee">Assignee</label>
+                <select 
+                    id="assignee"
+                    formControlName="assignee" 
+                    class="form-control form-select"
+                    [class.is-invalid]="taskForm.get('assignee')?.invalid && taskForm.get('assignee')?.touched"
+                >
+                    <option value="">Select Assignee</option>
+                    <option *ngFor="let user of users" [value]="user._id">
+                        {{ user.name }}
+                    </option>
+                </select>
+                <div class="invalid-feedback" 
+                     *ngIf="taskForm.get('assignee')?.invalid && taskForm.get('assignee')?.touched">
+                    <div *ngIf="taskForm.get('assignee')?.errors?.['required']">Please select an assignee.</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <select 
+                    id="priority"
+                    formControlName="priority" 
+                    class="form-control form-select"
+                    [class.is-invalid]="taskForm.get('priority')?.invalid && taskForm.get('priority')?.touched"
+                >
+                    <option value="">Select Priority</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+                <div class="invalid-feedback" 
+                     *ngIf="taskForm.get('priority')?.invalid && taskForm.get('priority')?.touched">
+                    <div *ngIf="taskForm.get('priority')?.errors?.['required']">Please select a priority.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Row for Due Date and Status -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="dueDate">Due Date</label>
+                <input 
+                    id="dueDate"
+                    type="date" 
+                    formControlName="dueDate" 
+                    class="form-control"
+                    [class.is-invalid]="taskForm.get('dueDate')?.invalid && taskForm.get('dueDate')?.touched"
+                />
+                <div class="invalid-feedback" 
+                     *ngIf="taskForm.get('dueDate')?.invalid && taskForm.get('dueDate')?.touched">
+                    <div *ngIf="taskForm.get('dueDate')?.errors?.['required']">Due date is required.</div>
+                </div>
+            </div>
+
+            <div class="form-group" *ngIf="id">
+                <label for="status">Status</label>
+                <select 
+                    id="status"
+                    formControlName="status" 
+                    class="form-control form-select"
+                    [class.is-invalid]="taskForm.get('status')?.invalid && taskForm.get('status')?.touched"
+                >
+                    <option value="Pending">Pending</option>
+                    <option value="In-progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button 
+                type="button" 
+                class="btn btn-outline-light"
+                routerLink="/tasks"
+            >
+                <i class="fa fa-times" aria-hidden="true"></i>
+                Cancel
+            </button>
+            
+            <button 
+                type="submit" 
+                class="btn btn-primary"
+                [disabled]="taskForm.invalid"
+            >
+                <i class="fa" [ngClass]="id ? 'fa-save' : 'fa-plus'" aria-hidden="true"></i>
+                {{ id ? 'Update Task' : 'Create Task' }}
+            </button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,31 @@
+const messages = {
+
+    "rest_keywords_invalid_api_key": "Invalid Api key",
+    "rest_keywords_tokeninvalid": "Invalid Token",
+    "rest_keywords_user_signup_success": "Signed Up successfully.",
+    "rest_keywords_user_signup_failed": "Signup failed, please try again.",
+    'rest_keyword_something_went_wrong':'Something went Wrong Please try again later',
+    "rest_keywords_invalid_email": "Invalid email",
+    "rest_keywords_incorrect_password": "Incorrect password",
+    "rest_keywords_user_login_succ": "Logged in successfully",
+    "rest_keywords_user_details_succ": "User details retrieved successfully",
+    "rest_keywords_user_not_found": "User not found",
+    'rest_keywords_unique_email_error' : "Hey User! This email is already used",
+    'rest_keywords_task_created_success': "Task created successfully",
+    'rest_keywords_task_list_success': "Task list retrieved successfully",
+    'rest_keywords_task_details_success': "Task details retrieved successfully",
+    'rest_keywords_task_not_found': "Task not found",
+    'rest_keywords_task_completed_success': "Task marked as completed successfully",
+    'rest_keywords_task_deleted_success': "Task deleted successfully",
+    'rest_keywords_comment_created_success': "Comment created successfully",
+    'rest_keywords_comment_list_success': "Comments retrieved successfully",
+    'rest_keywords_notification_created_success': "Notification created successfully",
+    'rest_keywords_notification_list_success': "Notifications retrieved successfully",
+    'rest_keywords_notification_not_found': "Notification not found",
+    'rest_keywords_notification_marked_read_success': "Notification marked as read successfully",
+    'rest_keywords_notification_deleted_success': "Notification deleted successfully",
+    'rest_keywords_users_list_success': "Users list retrieved successfully",
+    'rest_keywords_no_users_found': "No users found",
+}
+
+module.exports = messages;
