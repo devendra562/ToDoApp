@@ -25,9 +25,9 @@ export class SocketService {
 
     this.socket = io('http://localhost:3034', {
       reconnection: true,
-      reconnectionAttempts: 5,     // Max retry attempts
-      reconnectionDelay: 2000,     // Initial delay
-      reconnectionDelayMax: 5000   // Max delay between retries
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000
     });
 
     this.socket.on('connect', () => {
@@ -50,13 +50,14 @@ export class SocketService {
 
     this.socket.io.on('reconnect', (attempt) => {
       console.log('✅ Reconnected after', attempt, 'attempt(s)');
-      this.toastr.error('Reconnected to the server.');
+      this.toastr.success('Reconnected to the server.');
       this.socket.emit('identify', userId); // Re-identify on reconnect
     });
 
     this.registerNotificationListeners();
   }
 
+  // ✅ Only keep internal notifications in here
   private registerNotificationListeners(): void {
     this.socket.on('taskAssigned', (data) => {
       this.handleNotification('Task Assigned', data);
@@ -69,14 +70,18 @@ export class SocketService {
     this.socket.on('taskUnassigned', (data) => {
       this.handleNotification('Task Unassigned', data);
     });
+
+    // ❌ Don't handle taskCreated/taskDetailsUpdated here
+    // Let components subscribe via .listen()
   }
 
   private handleNotification(type: string, data: any): void {
-    console.log(`@@@@@ ${type}:`, data);
+    console.log(`📥 ${type}:`, data);
     const notification = data.notification;
     if (notification) {
-      
-    }this.toastr.success(`${notification.message}`);
+      this.addNotification(notification);
+      this.toastr.success(`${notification.message}`);
+    }
   }
 
   private addNotification(notification: any): void {
@@ -84,6 +89,7 @@ export class SocketService {
     this.notificationsSubject.next([notification, ...current]);
   }
 
+  // ✅ Generic emitter
   emit(eventName: string, data: any): void {
     if (this.socket?.connected) {
       this.socket.emit(eventName, data);
@@ -92,6 +98,7 @@ export class SocketService {
     }
   }
 
+  // ✅ Generic listener - this is what you use in components
   listen(eventName: string): Observable<any> {
     return new Observable<any>((observer) => {
       this.socket.on(eventName, (data) => {

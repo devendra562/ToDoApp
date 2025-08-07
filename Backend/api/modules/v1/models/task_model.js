@@ -256,7 +256,7 @@ const task_model = {
             }
 
             // Broadcast update to all clients
-            io.emit('taskUpdated', { task: taskObj });
+            io.emit('taskDetailsUpdated', { task: taskObj });
 
             return await common.sendResponse(res, Codes.SUCCESS, lang[req.language]['rest_keywords_task_updated_success'], taskObj);
 

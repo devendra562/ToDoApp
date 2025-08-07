@@ -5,6 +5,7 @@ import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SocketService } from '../../../services/socket.service';
 
 @Component({
   selector: 'app-task-list',
@@ -49,12 +50,25 @@ export class TaskListComponent implements OnInit {
     { value: 'High', label: 'High' }
   ];
 
-  constructor(private taskService: TaskService, private toastr: ToastrService) { }
+  constructor(private taskService: TaskService, private toastr: ToastrService, private socketService: SocketService) { }
 
   ngOnInit(): void {
+    // Listen for real-time task creation
+    this.socketService.listen('taskCreated').subscribe((data: { task: any }) => {
+      console.log('👀 New task created:', data.task);
+      this.getAllTasks(); // Or update your list manually
+    });
+
+    // Listen for real-time task updates
+    this.socketService.listen('taskDetailsUpdated').subscribe((data: { task: any }) => {
+      console.log('👀 Task updated:', data.task);
+      this.getAllTasks(); // Or update the specific item
+    });
+
     this.loadUsers();
     this.getAllTasks();
   }
+
 
   loadUsers(): void {
     this.taskService.getUsers().subscribe({
@@ -125,7 +139,7 @@ export class TaskListComponent implements OnInit {
   // Comment functionality
   toggleComments(taskId: string) {
     this.showComments[taskId] = !this.showComments[taskId];
-    
+
     if (this.showComments[taskId] && !this.taskComments[taskId]) {
       this.loadComments(taskId);
     }
@@ -133,7 +147,7 @@ export class TaskListComponent implements OnInit {
 
   loadComments(taskId: string) {
     this.loadingComments[taskId] = true;
-    
+
     this.taskService.getCommentsByTask(taskId).subscribe({
       next: (res: any) => {
         this.taskComments[taskId] = res.data || [];
@@ -149,7 +163,7 @@ export class TaskListComponent implements OnInit {
 
   addComment(taskId: string) {
     const comment = this.newComment[taskId]?.trim();
-    
+
     if (!comment) {
       this.toastr.warning('Please enter a comment');
       return;
@@ -158,7 +172,7 @@ export class TaskListComponent implements OnInit {
     this.taskService.addComment(taskId, comment).subscribe({
       next: (res: any) => {
         this.toastr.success('Comment added successfully');
-        this.newComment[taskId] = ''; 
+        this.newComment[taskId] = '';
         this.loadComments(taskId);
       },
       error: () => {

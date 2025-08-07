@@ -60,9 +60,9 @@ export class TaskFormComponent {
   onSubmit(): void {
     if (this.taskForm.invalid) return;
 
-    const { title, description, assignee, dueDate } = this.taskForm.value;
+    const { title, description, assignee, dueDate, status, priority } = this.taskForm.value;
 
-    const taskData = { title, description, assignee, dueDate };
+    const taskData = { title, description, assignee, dueDate, status, priority };
 
     if (this.id) {
       this.taskService.updateTask(this.id, taskData).subscribe({
