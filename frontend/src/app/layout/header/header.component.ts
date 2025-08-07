@@ -4,6 +4,8 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service';
 
 interface User {
   _id: string;
@@ -16,7 +18,7 @@ interface Notification {
   id: string;
   type: 'task' | 'comment' | 'mention' | 'deadline' | 'system';
   message: string;
-  isRead: boolean;
+  is_read: boolean;
   createdAt: Date;
   taskId?: string;
   userId?: string;
@@ -60,9 +62,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    // private authService: AuthService,
-    // private notificationService: NotificationService,
-    // private searchService: SearchService
+    private authService: AuthService,
+    private notificationService: NotificationService
   ) {
     // Setup search debouncing
     this.quickSearchSubject.pipe(
@@ -115,22 +116,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // User Management
   private loadCurrentUser(): void {
     // Mock user data - replace with actual service call
-    this.currentUser = {
-      _id: '1',
-      name: 'John Doe',
-      email: 'john.doe@example.com'
-    };
-
-    // Actual implementation would be:
-    // this.authService.getCurrentUser()
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe(user => {
-    //     this.currentUser = user;
-    //   });
+    // this.currentUser = {
+    //   _id: '1',
+    //   name: 'John Doe',
+    //   email: 'john.doe@example.com'
+    // };
+    this.authService.fetchCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user.data;
+      },
+      error: (err) => {
+        console.error('Failed to fetch current user', err);
+      }
+    })
   }
 
   logout(): void {
-    // this.authService.logout();
+    this.authService.logout();
     this.router.navigate(['/login']);
     this.closeMobileMenu();
   }
@@ -196,43 +198,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   // Notification Management
   private loadNotifications(): void {
-    // Mock notifications - replace with actual service call
-    this.notifications = [
-      {
-        id: '1',
-        type: 'task',
-        message: 'New task assigned: Complete project documentation',
-        isRead: false,
-        createdAt: new Date(Date.now() - 300000), // 5 minutes ago
-        taskId: '123'
-      },
-      {
-        id: '2',
-        type: 'comment',
-        message: 'Sarah commented on your task: "Great progress!"',
-        isRead: false,
-        createdAt: new Date(Date.now() - 900000), // 15 minutes ago
-        taskId: '124'
-      },
-      {
-        id: '3',
-        type: 'deadline',
-        message: 'Task due in 2 hours: Review user feedback',
-        isRead: true,
-        createdAt: new Date(Date.now() - 7200000), // 2 hours ago
-        taskId: '125'
-      }
-    ];
 
+    this.notificationService.getNotificationsByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(notifications => {
+        this.notifications = notifications.data || [];
+        this.updateNotificationCount();
+      });
     this.updateNotificationCount();
-
-    // Actual implementation would be:
-    // this.notificationService.getNotifications()
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe(notifications => {
-    //     this.notifications = notifications;
-    //     this.updateNotificationCount();
-    //   });
   }
 
   private setupNotificationPolling(): void {
@@ -243,7 +216,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private updateNotificationCount(): void {
-    this.unreadNotifications = this.notifications.filter(n => !n.isRead).length;
+    this.unreadNotifications = this.notifications.filter(n => !n.is_read).length;
   }
 
   toggleNotifications(): void {
@@ -252,39 +225,50 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.showProfile = false;
   }
 
-  markAsRead(notificationId: string): void {
-    const notification = this.notifications.find(n => n.id === notificationId);
-    if (notification) {
-      notification.isRead = true;
-      this.updateNotificationCount();
+  markAsRead(notification: any): void {
+    const notificationId = notification._id;
 
-      // Actual implementation would be:
-      // this.notificationService.markAsRead(notificationId)
-      //   .pipe(takeUntil(this.destroy$))
-      //   .subscribe();
-    }
+
+    // Actual implementation would be:
+    this.notificationService.markAsRead(notificationId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loadNotifications();
+          this.updateNotificationCount();
+        },
+        error: (err) => {
+          console.error('Error marking notification as read', err);
+        }
+      });
   }
 
   markAllAsRead(): void {
-    this.notifications.forEach(notification => {
-      notification.isRead = true;
-    });
-    this.updateNotificationCount();
+    this.notificationService.markAsRead()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.updateNotificationCount();
+          this.loadNotifications();
+        },
+        error: (err) => console.error('Error', err)
+      });
 
-    // Actual implementation would be:
-    // this.notificationService.markAllAsRead()
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe();
   }
 
-  deleteNotification(notificationId: string): void {
-    this.notifications = this.notifications.filter(n => n.id !== notificationId);
-    this.updateNotificationCount();
-
-    // Actual implementation would be:
-    // this.notificationService.deleteNotification(notificationId)
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe();
+  deleteNotification(notification: any): void {
+    const notificationId = notification._id;
+    this.notificationService.deleteNotification(notificationId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loadNotifications();
+          this.updateNotificationCount();
+        },
+        error: (err) => {
+          console.error('Error deleting notification', err);
+        }
+      });
   }
 
   getNotificationIcon(type: string): string {

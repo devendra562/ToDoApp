@@ -46,7 +46,7 @@ export class LoginComponent {
           confirmButtonText: 'OK'
         }).then(() => {
           localStorage.setItem('token', res.data.token);
-          this.router.navigate(['/tasks']);
+          this.router.navigate(['/dashboard/tasks']);
         });
         this.socketService.connect(res.data._id);
       },

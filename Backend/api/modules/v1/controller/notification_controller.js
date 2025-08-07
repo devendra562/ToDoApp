@@ -33,7 +33,6 @@ const getNotificationsByUser = async (req, res) => {
 
 const markAsRead = async (req, res) => {
     // const request = await common.decryption(req);
-    console.log(`Request to mark notification as read: ${JSON.stringify(req.params)}`);
     
     req.body.language = req.language;
     req.body.user_id = req.user_id;

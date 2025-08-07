@@ -56,7 +56,7 @@
 
     <!-- Add Task Button -->
     <div class="action-section">
-        <a routerLink="/task-form" class="btn btn-primary">
+        <a routerLink="/dashboard/task-form" class="btn btn-primary">
             <i class="fa fa-plus" aria-hidden="true"></i>
             Add New Task
         </a>
@@ -72,7 +72,7 @@
                         <i class="fa fa-comment" aria-hidden="true"></i> 
                         Comments ({{ getCommentCount(task._id) }})
                     </button>
-                    <a [routerLink]="['/task-form', task._id]" class="btn btn-secondary btn-sm">
+                    <a [routerLink]="['/dashboard/task-form', task._id]" class="btn btn-secondary btn-sm">
                         <i class="fa fa-edit" aria-hidden="true"></i>
                         Edit
                     </a>

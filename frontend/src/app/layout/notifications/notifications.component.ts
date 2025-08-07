@@ -13,12 +13,12 @@ interface NotificationType {
 
 // Interface for Notification (adjust based on your API response)
 interface Notification {
-_id: string;
+  _id: string;
   id: string;
   type: string;
   title?: string;
   message: string;
-  isRead: boolean;
+  is_read: boolean;
   createdAt: string;
   priority?: string;
   taskTitle?: string;
@@ -42,44 +42,44 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   loading = false;
   showQuickActions = false;
   showConfirmModal = false;
-  
+
   // Counts
   unreadCount = 0;
   totalCount = 0;
-  
+
   // Pagination properties
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
-  
+
   get paginatedNotifications(): Notification[] {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
     return this.sortedNotifications.slice(startIndex, endIndex);
   }
-  
+
   get sortedNotifications(): Notification[] {
-    return [...this.notifications].sort((a, b) => 
+    return [...this.notifications].sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }
-  
+
   // Modal properties
   confirmModalTitle = '';
   confirmModalMessage = '';
   confirmModalAction = '';
   private pendingAction: (() => void) | null = null;
-  
+
   // Destroy subject for cleanup
   private readonly destroy$ = new Subject<void>();
-  
+
   // Math object for template
   Math = Math;
 
   constructor(
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadNotifications();
@@ -93,7 +93,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   // API Methods - Only using the three available endpoints
   loadNotifications(): void {
     this.loading = true;
-    
+
     this.notificationService.getNotificationsByUser()
       .pipe(
         takeUntil(this.destroy$),
@@ -111,7 +111,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       });
   }
 
-  markAsRead(notificationId: string): void {
+  markAsRead(notification: any): void {
+    const notificationId = notification._id || notification.id;
     this.notificationService.markAsRead(notificationId)
       .pipe(
         takeUntil(this.destroy$),
@@ -121,14 +122,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((result: any) => {
-        if (result) {
-          // Update local state
-          const notification = this.notifications.find(n => n.id === notificationId);
-          if (notification) {
-            notification.isRead = true;
-            this.updateCounts();
-          }
-        }
+        this.loadNotifications();
+        this.updateCounts();
       });
   }
 
@@ -136,12 +131,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     // Since there's no API endpoint for marking as unread, only update locally
     const notification = this.notifications.find(n => n.id === notificationId);
     if (notification) {
-      notification.isRead = false;
+      notification.is_read = false;
       this.updateCounts();
     }
   }
 
-  deleteNotification(notificationId: string): void {
+  deleteNotification(notification: any): void {
+    const notificationId = notification._id || notification.id;
     this.notificationService.deleteNotification(notificationId)
       .pipe(
         takeUntil(this.destroy$),
@@ -152,8 +148,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       )
       .subscribe(result => {
         if (result) {
-          // Remove from local state
-          this.notifications = this.notifications.filter(n => n.id !== notificationId);
+          this.loadNotifications();
           this.updateCounts();
           this.updatePagination();
         }
@@ -166,8 +161,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.confirmModalMessage = `Are you sure you want to mark all ${this.unreadCount} unread notifications as read?`;
     this.confirmModalAction = 'Mark All Read';
     this.pendingAction = () => {
-      const unreadNotifications = this.notifications.filter(n => !n.isRead);
-      
+      const unreadNotifications = this.notifications.filter(n => !n.is_read);
+
       if (unreadNotifications.length === 0) {
         return;
       }
@@ -186,7 +181,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         // Update local state for successful requests
         results.forEach((result, index) => {
           if (result) {
-            unreadNotifications[index].isRead = true;
+            unreadNotifications[index].is_read = true;
           }
         });
         this.updateCounts();
@@ -217,7 +212,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       forkJoin(deleteRequests).subscribe(results => {
         // Remove successfully deleted notifications
         const successfulDeletions = results.filter(result => result !== null);
-        
+
         // If all were successful, clear all; otherwise filter based on results
         if (successfulDeletions.length === this.notifications.length) {
           this.notifications = [];
@@ -226,7 +221,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
           this.loadNotifications();
           return;
         }
-        
+
         this.updateCounts();
         this.updatePagination();
       });
@@ -252,25 +247,25 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     const pages: number[] = [];
     const maxVisible = 5;
     const half = Math.floor(maxVisible / 2);
-    
+
     let start = Math.max(1, this.currentPage - half);
     let end = Math.min(this.totalPages, start + maxVisible - 1);
-    
+
     if (end - start < maxVisible - 1) {
       start = Math.max(1, end - maxVisible + 1);
     }
-    
+
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
-    
+
     return pages;
   }
 
   // Utility Methods
   private updateCounts(): void {
     this.totalCount = this.notifications.length;
-    this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+    this.unreadCount = this.notifications.filter(n => !n.is_read).length;
   }
 
   trackByNotificationId(index: number, notification: Notification): string {
@@ -314,7 +309,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   navigateToAction(notification: Notification): void {
     if (notification.actionUrl) {
       // Mark as read first
-      if (!notification.isRead) {
+      if (!notification.is_read) {
         this.markAsRead(notification.id);
       }
       // Navigate to the action URL

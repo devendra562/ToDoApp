@@ -17,7 +17,6 @@ const globals = {
     BANNER_IMAGE:'banner/',
     CATEGORY_IMAGE:'category/',
     PRODUCT_IMAGE:'product/',
-    PER_PAGE : 10,
-
+    PER_PAGE : 10
 }
 module.exports = globals;

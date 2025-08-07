@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TaskService } from '../../../services/task.service';
 import { ToastrService } from 'ngx-toastr';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,7 +10,7 @@ import { SocketService } from '../../../services/socket.service';
 @Component({
   selector: 'app-task-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './task-form.component.html',
   styleUrl: './task-form.component.css'
 })
@@ -68,7 +68,7 @@ export class TaskFormComponent {
       this.taskService.updateTask(this.id, taskData).subscribe({
         next: () => {
           this.toastr.success('Task updated successfully');
-          this.router.navigate(['/tasks']);
+          this.router.navigate(['/dashboard/tasks']);
         },
         error: (err) => {
           this.toastr.error('Failed to update task');

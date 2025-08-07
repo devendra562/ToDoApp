@@ -34,7 +34,7 @@
     <div class="notifications-grid">
       <div *ngFor="let notification of paginatedNotifications; trackBy: trackByNotificationId" 
            class="notification-card"
-           [class.unread]="!notification.isRead"
+           [class.unread]="!notification.is_read"
            [class.priority]="notification.priority === 'high'">
         
         <!-- Notification Header -->
@@ -47,13 +47,13 @@
           <div class="notification-meta">
             <span class="notification-time">{{ notification.createdAt | date: 'MMM dd, HH:mm' }}</span>
             <div class="notification-actions">
-              <button *ngIf="!notification.isRead" 
-                      (click)="markAsRead(notification.id)" 
+              <button *ngIf="!notification.is_read" 
+                      (click)="markAsRead(notification)" 
                       class="action-btn read-btn"
                       title="Mark as read">
                 <i class="fa fa-check" aria-hidden="true"></i>
               </button>
-              <button (click)="deleteNotification(notification.id)" 
+              <button (click)="deleteNotification(notification)" 
                       class="action-btn delete-btn"
                       title="Delete notification">
                 <i class="fa fa-trash" aria-hidden="true"></i>

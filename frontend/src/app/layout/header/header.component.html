@@ -49,9 +49,7 @@
           <i class="fa fa-search" aria-hidden="true"></i>
         </button>
         <div class="search-dropdown" [class.show]="showSearch">
-          <input type="text" 
-                 
-                 (input)="onQuickSearch()"
+          <input type="text"                   
                  placeholder="Quick search..."
                  class="search-input">
           <div *ngIf="searchResults.length > 0" class="search-results">
@@ -92,7 +90,7 @@
           <div class="notifications-list" *ngIf="notifications.length > 0; else noNotifications">
             <div *ngFor="let notification of notifications" 
                  class="notification-item"
-                 [class.unread]="!notification.isRead">
+                 [class.unread]="!notification.is_read">
               <div class="notification-icon">
                 <i [class]="getNotificationIcon(notification.type)" aria-hidden="true"></i>
               </div>
@@ -101,13 +99,13 @@
                 <span class="notification-time">{{ notification.createdAt | date: 'short' }}</span>
               </div>
               <div class="notification-actions-menu">
-                <button *ngIf="!notification.isRead" 
-                        (click)="markAsRead(notification.id)" 
+                <button *ngIf="!notification.is_read" 
+                        (click)="markAsRead(notification)" 
                         class="action-btn read-btn"
                         title="Mark as read">
                   <i class="fa fa-check" aria-hidden="true"></i>
                 </button>
-                <button (click)="deleteNotification(notification.id)" 
+                <button (click)="deleteNotification(notification)" 
                         class="action-btn delete-btn"
                         title="Delete">
                   <i class="fa fa-trash" aria-hidden="true"></i>
@@ -124,7 +122,7 @@
           </ng-template>
           
           <div class="notifications-footer">
-            <a routerLink="/notifications" class="view-all-link">View All Notifications</a>
+            <a routerLink="/dashboard/notifications" class="view-all-link">View All Notifications</a>
           </div>
         </div>
       </div>

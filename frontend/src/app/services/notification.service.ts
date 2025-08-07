@@ -14,9 +14,13 @@ export class NotificationService {
     return this.http.get(`${this.api}/getNotificationsByUser`);
   }
 
-  markAsRead(notificationId: string): Observable<any> {
-    return this.http.put(`${this.api}/markAsRead/${notificationId}`, {});
+  markAsRead(notificationId?: string): Observable<any> {
+    const url = notificationId
+      ? `${this.api}/markAsRead/${notificationId}` // for single notification
+      : `${this.api}/markAsRead`;                  // for all notifications
+    return this.http.put(url, {});
   }
+
 
   deleteNotification(notificationId: string): Observable<any> {
     return this.http.delete(`${this.api}/deleteNotification/${notificationId}`);
