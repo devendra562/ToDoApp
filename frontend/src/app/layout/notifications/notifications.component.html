@@ -1,0 +1,209 @@
+<!-- notifications.component.html -->
+<div class="notifications-background"></div>
+<div class="notifications-container">
+  <!-- Header Section -->
+  <div class="notifications-header-section">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <i class="fa fa-bell" aria-hidden="true"></i>
+          Notifications
+        </h1>
+        <p class="page-subtitle">Stay updated with your latest activities</p>
+      </div>
+      
+      <div class="header-actions">
+        <div class="notification-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ totalCount }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-section">
+    <div class="spinner-large"></div>
+    <p>Loading notifications...</p>
+  </div>
+
+  <!-- Notifications List -->
+  <div *ngIf="!loading && notifications.length > 0" class="notifications-list-section">
+    <div class="notifications-grid">
+      <div *ngFor="let notification of paginatedNotifications; trackBy: trackByNotificationId" 
+           class="notification-card"
+           [class.unread]="!notification.is_read"
+           [class.priority]="notification.priority === 'high'">
+        
+        <!-- Notification Header -->
+        <div class="notification-card-header">
+          <div class="notification-type-badge">
+            <i [class]="getNotificationIcon(notification.type)" aria-hidden="true"></i>
+            <!-- <span>{{ getNotificationTypeLabel(notification.type) }}</span> -->
+          </div>
+          
+          <div class="notification-meta">
+            <span class="notification-time">{{ notification.createdAt | date: 'MMM dd, HH:mm' }}</span>
+            <div class="notification-actions">
+              <button *ngIf="!notification.is_read" 
+                      (click)="markAsRead(notification)" 
+                      class="action-btn read-btn"
+                      title="Mark as read">
+                <i class="fa fa-check" aria-hidden="true"></i>
+              </button>
+              <button (click)="deleteNotification(notification)" 
+                      class="action-btn delete-btn"
+                      title="Delete notification">
+                <i class="fa fa-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Content -->
+        <div class="notification-content">
+          <div class="notification-icon-large">
+            <i [class]="getNotificationIcon(notification.type)" aria-hidden="true"></i>
+          </div>
+          
+          <div class="notification-details">
+            <h4 class="notification-title">{{ notification.title || getDefaultTitle(notification.type) }}</h4>
+            <p class="notification-message">{{ notification.message }}</p>
+            
+            <!-- Additional Info -->
+            <div class="notification-info" *ngIf="notification.taskTitle || notification.projectTitle">
+              <span class="info-item" *ngIf="notification.taskTitle">
+                <i class="fa fa-tasks" aria-hidden="true"></i>
+                Task: {{ notification.taskTitle }}
+              </span>
+              <span class="info-item" *ngIf="notification.projectTitle">
+                <i class="fa fa-folder" aria-hidden="true"></i>
+                Project: {{ notification.projectTitle }}
+              </span>
+              <span class="info-item" *ngIf="notification.userName">
+                <i class="fa fa-user" aria-hidden="true"></i>
+                From: {{ notification.userName }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="notification-card-footer" *ngIf="notification.actionUrl || notification.taskId">
+          <button *ngIf="notification.actionUrl" 
+                  (click)="navigateToAction(notification)" 
+                  class="btn btn-primary btn-sm">
+            <i class="fa fa-arrow-right" aria-hidden="true"></i>
+            {{ notification.actionText || 'View Details' }}
+          </button>
+          <button *ngIf="notification.taskId && !notification.actionUrl" 
+                  (click)="navigateToTask(notification.taskId)" 
+                  class="btn btn-secondary btn-sm">
+            <i class="fa fa-tasks" aria-hidden="true"></i>
+            View Task
+          </button>
+        </div>
+
+        <!-- Priority Indicator -->
+        <div *ngIf="notification.priority === 'high'" class="priority-indicator">
+          <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-section" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, notifications.length) }} 
+        of {{ notifications.length }} notifications
+      </div>
+      
+      <div class="pagination-controls">
+        <button (click)="goToPage(currentPage - 1)" 
+                [disabled]="currentPage <= 1" 
+                class="btn btn-outline-light btn-sm">
+          <i class="fa fa-chevron-left" aria-hidden="true"></i>
+          Previous
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of getVisiblePages()" 
+                  (click)="goToPage(page)"
+                  [class.active]="page === currentPage"
+                  class="page-btn">
+            {{ page }}
+          </button>
+        </div>
+        
+        <button (click)="goToPage(currentPage + 1)" 
+                [disabled]="currentPage >= totalPages" 
+                class="btn btn-outline-light btn-sm">
+          Next
+          <i class="fa fa-chevron-right" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && notifications.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <i class="fa fa-bell-slash" aria-hidden="true"></i>
+    </div>
+    <h3>No Notifications Found</h3>
+    <p>You're all caught up! No notifications to display.</p>
+  </div>
+
+  <!-- Quick Actions Floating Button -->
+  <div class="floating-actions" *ngIf="!loading">
+    <button class="floating-btn main-btn" (click)="toggleQuickActions()">
+      <i class="fa fa-plus" aria-hidden="true"></i>
+    </button>
+    
+    <div class="quick-actions-menu" [class.show]="showQuickActions">
+      <button class="floating-btn action-btn" 
+              (click)="refreshNotifications()"
+              title="Refresh">
+        <i class="fa fa-refresh" aria-hidden="true"></i>
+      </button>
+      <button class="floating-btn action-btn" 
+              *ngIf="unreadCount > 0"
+              (click)="markAllAsRead()"
+              title="Mark all as read">
+        <i class="fa fa-check-double" aria-hidden="true"></i>
+      </button>
+      <button class="floating-btn action-btn" 
+              (click)="exportNotifications()"
+              title="Export">
+        <i class="fa fa-download" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal for Bulk Actions -->
+<div class="modal-overlay" [class.show]="showConfirmModal" (click)="closeConfirmModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>{{ confirmModalTitle }}</h4>
+      <button class="modal-close" (click)="closeConfirmModal()">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <p>{{ confirmModalMessage }}</p>
+    </div>
+    
+    <div class="modal-footer">
+      <button (click)="closeConfirmModal()" class="btn btn-outline-light">
+        Cancel
+      </button>
+      <button (click)="confirmAction()" class="btn btn-danger">
+        {{ confirmModalAction }}
+      </button>
+    </div>
+  </div>
+</div>

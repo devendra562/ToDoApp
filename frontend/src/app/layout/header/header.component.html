@@ -1,0 +1,270 @@
+<!-- header.component.html -->
+<header class="app-header">
+  <div class="header-background"></div>
+  
+  <div class="header-container">
+    <!-- Logo/Brand Section -->
+    <div class="brand-section">
+      <div class="logo-container">
+        <i class="fa fa-tasks logo-icon" aria-hidden="true"></i>
+        <h1 class="app-title">TaskFlow</h1>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="main-nav">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+            <i class="fa fa-dashboard" aria-hidden="true"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/tasks" routerLinkActive="active" class="nav-link">
+            <i class="fa fa-list" aria-hidden="true"></i>
+            <span>Tasks</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/projects" routerLinkActive="active" class="nav-link">
+            <i class="fa fa-folder" aria-hidden="true"></i>
+            <span>Projects</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/team" routerLinkActive="active" class="nav-link">
+            <i class="fa fa-users" aria-hidden="true"></i>
+            <span>Team</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- User Actions Section -->
+    <div class="user-actions">
+      <!-- Search -->
+      <div class="quick-search">
+        <button class="search-toggle" (click)="toggleSearch()">
+          <i class="fa fa-search" aria-hidden="true"></i>
+        </button>
+        <div class="search-dropdown" [class.show]="showSearch">
+          <input type="text"                   
+                 placeholder="Quick search..."
+                 class="search-input">
+          <div *ngIf="searchResults.length > 0" class="search-results">
+            <div *ngFor="let result of searchResults" 
+                 class="search-result-item"
+                 (click)="navigateToResult(result)">
+              <i [class]="result.icon" aria-hidden="true"></i>
+              <span>{{ result.title }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="notifications-container">
+        <button class="notification-toggle" 
+                (click)="toggleNotifications()"
+                [class.has-notifications]="unreadNotifications > 0">
+          <i class="fa fa-bell" aria-hidden="true"></i>
+          <span *ngIf="unreadNotifications > 0" class="notification-badge">
+            {{ unreadNotifications > 99 ? '99+' : unreadNotifications }}
+          </span>
+        </button>
+        
+        <!-- Notifications Dropdown -->
+        <div class="notifications-dropdown" [class.show]="showNotifications">
+          <div class="notifications-header">
+            <h4>Notifications</h4>
+            <div class="notification-actions">
+              <button *ngIf="unreadNotifications > 0" 
+                      (click)="markAllAsRead()" 
+                      class="btn-link">
+                Mark all as read
+              </button>
+            </div>
+          </div>
+          
+          <div class="notifications-list" *ngIf="notifications.length > 0; else noNotifications">
+            <div *ngFor="let notification of notifications" 
+                 class="notification-item"
+                 [class.unread]="!notification.is_read">
+              <div class="notification-icon">
+                <i [class]="getNotificationIcon(notification.type)" aria-hidden="true"></i>
+              </div>
+              <div class="notification-content">
+                <p class="notification-text">{{ notification.message }}</p>
+                <span class="notification-time">{{ notification.createdAt | date: 'short' }}</span>
+              </div>
+              <div class="notification-actions-menu">
+                <button *ngIf="!notification.is_read" 
+                        (click)="markAsRead(notification)" 
+                        class="action-btn read-btn"
+                        title="Mark as read">
+                  <i class="fa fa-check" aria-hidden="true"></i>
+                </button>
+                <button (click)="deleteNotification(notification)" 
+                        class="action-btn delete-btn"
+                        title="Delete">
+                  <i class="fa fa-trash" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noNotifications>
+            <div class="no-notifications">
+              <i class="fa fa-bell-slash" aria-hidden="true"></i>
+              <p>No notifications</p>
+            </div>
+          </ng-template>
+          
+          <div class="notifications-footer">
+            <a routerLink="/dashboard/notifications" class="view-all-link">View All Notifications</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Profile -->
+      <div class="user-profile">
+        <button class="profile-toggle" (click)="toggleProfile()">
+          <div class="user-avatar">
+            {{ (currentUser?.name || 'User').charAt(0) }}
+          </div>
+          <span class="user-name">{{ currentUser?.name || 'User' }}</span>
+          <i class="fa fa-chevron-down dropdown-icon" aria-hidden="true"></i>
+        </button>
+        
+        <div class="profile-dropdown" [class.show]="showProfile">
+          <div class="profile-header">
+            <div class="profile-avatar-large">
+              {{ (currentUser?.name || 'User').charAt(0) }}
+            </div>
+            <div class="profile-info">
+              <h4>{{ currentUser?.name || 'User' }}</h4>
+              <p>{{ currentUser?.email || 'user@example.com' }}</p>
+            </div>
+          </div>
+          
+          <ul class="profile-menu">
+            <li>
+              <a routerLink="/profile" class="profile-menu-item">
+                <i class="fa fa-user" aria-hidden="true"></i>
+                <span>My Profile</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/settings" class="profile-menu-item">
+                <i class="fa fa-cog" aria-hidden="true"></i>
+                <span>Settings</span>
+              </a>
+            </li>
+            <li>
+              <a routerLink="/help" class="profile-menu-item">
+                <i class="fa fa-question-circle" aria-hidden="true"></i>
+                <span>Help & Support</span>
+              </a>
+            </li>
+            <li class="menu-divider"></li>
+            <li>
+              <button (click)="logout()" class="profile-menu-item logout-btn">
+                <i class="fa fa-sign-out" aria-hidden="true"></i>
+                <span>Logout</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
+  <span class="hamburger-line"></span>
+  <span class="hamburger-line"></span>
+  <span class="hamburger-line"></span>
+</button>
+
+<!-- Mobile Navigation Overlay -->
+<div class="mobile-nav-overlay" [class.show]="showMobileMenu" (click)="closeMobileMenu()">
+  <nav class="mobile-nav">
+    <div class="mobile-nav-header">
+      <div class="logo-container">
+        <i class="fa fa-tasks logo-icon" aria-hidden="true"></i>
+        <h2 class="app-title">TaskFlow</h2>
+      </div>
+      <button class="close-mobile-nav" (click)="closeMobileMenu()">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    
+    <ul class="mobile-nav-list">
+      <li class="mobile-nav-item">
+        <a routerLink="/dashboard" 
+           routerLinkActive="active" 
+           class="mobile-nav-link"
+           (click)="closeMobileMenu()">
+          <i class="fa fa-dashboard" aria-hidden="true"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="mobile-nav-item">
+        <a routerLink="/tasks" 
+           routerLinkActive="active" 
+           class="mobile-nav-link"
+           (click)="closeMobileMenu()">
+          <i class="fa fa-list" aria-hidden="true"></i>
+          <span>Tasks</span>
+        </a>
+      </li>
+      <li class="mobile-nav-item">
+        <a routerLink="/projects" 
+           routerLinkActive="active" 
+           class="mobile-nav-link"
+           (click)="closeMobileMenu()">
+          <i class="fa fa-folder" aria-hidden="true"></i>
+          <span>Projects</span>
+        </a>
+      </li>
+      <li class="mobile-nav-item">
+        <a routerLink="/team" 
+           routerLinkActive="active" 
+           class="mobile-nav-link"
+           (click)="closeMobileMenu()">
+          <i class="fa fa-users" aria-hidden="true"></i>
+          <span>Team</span>
+        </a>
+      </li>
+    </ul>
+    
+    <div class="mobile-user-section">
+      <div class="mobile-user-profile">
+        <div class="user-avatar">
+          {{ (currentUser?.name || 'User').charAt(0) }}
+        </div>
+        <div class="user-info">
+          <h4>{{ currentUser?.name || 'User' }}</h4>
+          <p>{{ currentUser?.email || 'user@example.com' }}</p>
+        </div>
+      </div>
+      
+      <div class="mobile-user-actions">
+        <a routerLink="/profile" class="mobile-action-btn" (click)="closeMobileMenu()">
+          <i class="fa fa-user" aria-hidden="true"></i>
+          <span>Profile</span>
+        </a>
+        <a routerLink="/settings" class="mobile-action-btn" (click)="closeMobileMenu()">
+          <i class="fa fa-cog" aria-hidden="true"></i>
+          <span>Settings</span>
+        </a>
+        <button (click)="logout()" class="mobile-action-btn logout">
+          <i class="fa fa-sign-out" aria-hidden="true"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+</div>

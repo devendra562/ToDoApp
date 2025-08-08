@@ -1,0 +1,173 @@
+<!-- task-list.component.html -->
+<div class="task-background"></div>
+<div class="task-list-container">
+    <!-- Search and Filter Section -->
+    <div class="search-filter-section">
+        <h4>Search & Filters</h4>
+
+        <!-- Search Bar -->
+        <div class="search-row">
+            <div class="search-item">
+                <label for="searchInput">Search Tasks:</label>
+                <input id="searchInput" type="text" [(ngModel)]="searchQuery" (input)="onSearchChange()"
+                    placeholder="Search by title or description..." class="form-control">
+            </div>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="filter-row">
+            <div class="filter-item">
+                <label for="statusFilter">Status:</label>
+                <select id="statusFilter" [(ngModel)]="filters.status" (change)="applyFilters()" class="form-select">
+                    <option *ngFor="let status of statusOptions" [value]="status.value">
+                        {{ status.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label for="priorityFilter">Priority:</label>
+                <select id="priorityFilter" [(ngModel)]="filters.priority" (change)="applyFilters()"
+                    class="form-select">
+                    <option *ngFor="let priority of priorityOptions" [value]="priority.value">
+                        {{ priority.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label for="assigneeFilter">Assignee:</label>
+                <select id="assigneeFilter" [(ngModel)]="filters.assignee" (change)="applyFilters()"
+                    class="form-select">
+                    <option value="">All Assignees</option>
+                    <option *ngFor="let user of users" [value]="user._id">
+                        {{ user.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-item filter-actions">
+                <button (click)="clearFilters()" class="btn btn-outline-light">
+                    Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Button -->
+    <div class="action-section">
+        <a routerLink="/dashboard/task-form" class="btn btn-primary">
+            <i class="fa fa-plus" aria-hidden="true"></i>
+            Add New Task
+        </a>
+    </div>
+
+    <!-- Task List -->
+    <ul *ngIf="tasks.length > 0; else noTasks" class="task-list">
+        <li *ngFor="let task of tasks" class="task-item">
+            <div class="task-header">
+                <h3>{{ task.title }}</h3>
+                <div class="task-actions">
+                    <button (click)="toggleComments(task._id)" class="btn btn-info btn-sm">
+                        <i class="fa fa-comment" aria-hidden="true"></i> 
+                        Comments ({{ getCommentCount(task._id) }})
+                    </button>
+                    <a [routerLink]="['/dashboard/task-form', task._id]" class="btn btn-secondary btn-sm">
+                        <i class="fa fa-edit" aria-hidden="true"></i>
+                        Edit
+                    </a>
+                    <button (click)="deleteTask(task._id)" class="btn btn-danger btn-sm">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                        Delete
+                    </button>
+                </div>
+            </div>
+
+            <div class="task-details">
+                <div class="detail-item">
+                    <strong>Description:</strong> 
+                    <span>{{ task.description }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Assignee:</strong> 
+                    <span class="assignee-name">{{ task.assignee?.name || 'Unassigned' }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Priority:</strong>
+                    <span [class]="'priority-badge priority-' + task.priority">{{ task.priority }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Status:</strong>
+                    <span [class]="'status-badge status-' + task.status">{{ task.status }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Due Date:</strong> 
+                    <span class="due-date">{{ task.dueDate | date: 'mediumDate' }}</span>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div *ngIf="showComments[task._id]" class="comments-section">
+
+                <!-- Loading Indicator -->
+                <div *ngIf="loadingComments[task._id]" class="loading-comments">
+                    <div class="spinner"></div>
+                    <p>Loading comments...</p>
+                </div>
+
+                <!-- Add Comment Form -->
+                <div class="add-comment-form">
+                    <div class="comment-input-group">
+                        <textarea [(ngModel)]="newComment[task._id]" 
+                                  placeholder="Add a comment..." 
+                                  class="form-control comment-textarea"
+                                  rows="2">
+                        </textarea>
+                        <button (click)="addComment(task._id)" 
+                                [disabled]="!(newComment[task._id] || '').trim()"
+                                class="btn btn-primary btn-sm">
+                            <i class="fa fa-paper-plane" aria-hidden="true"></i>
+                            Add Comment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comments List -->
+                <div *ngIf="(taskComments[task._id]?.length || 0) > 0" class="comments-list">
+                    <div *ngFor="let comment of taskComments[task._id]" class="comment-item">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <div class="author-avatar">{{ (comment.userId?.name || 'U').charAt(0) }}</div>
+                                <strong>{{ comment.userId?.name || 'Unknown User' }}</strong>
+                            </div>
+                            <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
+                        </div>
+                        <div class="comment-text">
+                            {{ comment.text }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Comments Message -->
+                <div *ngIf="!(taskComments[task._id]?.length)" class="no-comments">
+                    <i class="fa fa-comments-o" aria-hidden="true"></i>
+                    <p>No comments yet. Be the first to comment!</p>
+                </div>
+            </div>
+
+        </li>
+    </ul>
+
+    <ng-template #noTasks>
+        <div class="no-tasks">
+            <i class="fa fa-tasks" aria-hidden="true"></i>
+            <h3>No Tasks Found</h3>
+            <p>No tasks found matching the current search and filters.</p>
+            <button (click)="clearFilters()" class="btn btn-outline-light"
+                *ngIf="searchQuery || filters.status || filters.priority || filters.assignee">
+                <i class="fa fa-refresh" aria-hidden="true"></i>
+                Clear Search & Filters
+            </button>
+        </div>
+    </ng-template>
+</div>
